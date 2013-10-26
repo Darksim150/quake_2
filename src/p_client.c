@@ -1,5 +1,6 @@
 #include "g_local.h"
 #include "m_player.h"
+#include "Double_Jump.c"
 
 void ClientUserinfoChanged (edict_t *ent, char *userinfo);
 
@@ -590,6 +591,11 @@ void InitClientPersistant (gclient_t *client)
 	gitem_t		*item;
 
 	memset (&client->pers, 0, sizeof(client->pers));
+
+	//sword
+	item = FindItem("Sword");
+  client->pers.inventory[ITEM_INDEX(item)] = 1;
+  //sword
 
 	item = FindItem("Blaster");
 	client->pers.selected_item = ITEM_INDEX(item);
@@ -1564,6 +1570,9 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 	edict_t	*other;
 	int		i, j;
 	pmove_t	pm;
+	//start double jump
+	float Double_Jump_Height;
+	//end double jump
 
 	level.current_entity = ent;
 	client = ent->client;
@@ -1579,7 +1588,29 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 	}
 
 	pm_passent = ent;
+	//double jump start
+	if (ent->groundentity)
+		ent->timestamp = level.time;
 
+	if (!ent->groundentity && !ent->dbljumped && ucmd->upmove > 10)
+	{
+		if (level.time - ent->timestamp >= 0.35) // Time after jump to dbl-jump
+		{
+		// Play sound
+			gi.sound(ent, CHAN_VOICE, gi.soundindex("world/x_light.wav"), 1, ATTN_NORM, 0);
+
+			Float_ModVelocity(ent, 0, 0, 300);
+
+			// Init the vars
+			ent->dbljumped = true;
+			ent->timestamp = 0;
+		}
+	}
+
+	if (ent->groundentity && ent->dbljumped == true)
+		ent->dbljumped = false;
+
+	//end of double jump
 	if (ent->client->chase_target) {
 
 		client->resp.cmd_angles[0] = SHORT2ANGLE(ucmd->angles[0]);

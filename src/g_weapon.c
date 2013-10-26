@@ -896,4 +896,120 @@ void fire_bfg (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, f
 		check_dodge (self, bfg->s.origin, dir, speed);
 
 	gi.linkentity (bfg);
+
+}
+
+
+	void fire_dash(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick)
+{
+        vec3_t                from;
+        vec3_t                end;
+        trace_t                tr;
+        edict_t                *ignore;
+        int                        mask;
+        qboolean        water;
+
+        int                        j;
+
+        VectorMA (start, 8192, aimdir, end);
+        VectorCopy (start, from);
+        ignore = self;
+        water = false;
+        mask = MASK_SHOT|CONTENTS_SLIME|CONTENTS_LAVA;
+        while (ignore)
+        {
+                tr = gi.trace (from, NULL, NULL, end, ignore, mask);
+
+                if (tr.contents & (CONTENTS_SLIME|CONTENTS_LAVA))
+                {
+                        mask &= ~(CONTENTS_SLIME|CONTENTS_LAVA);
+                        water = true;
+                }
+                else
+                {
+                        if ((tr.ent->svflags & SVF_MONSTER) || (tr.ent->client) ||
+                                (tr.ent->solid == SOLID_BBOX))
+                                ignore = tr.ent;
+                        else
+                                ignore = NULL;
+
+                        if ((tr.ent != self) && (tr.ent->takedamage))
+                                T_Damage (tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal, damage, kick, 0, MOD_RAILGUN);
+                }
+
+                VectorCopy (tr.endpos, from);
+        }
+
+        if (self->client)
+		{
+			gi.bprintf(2,"buttons: %i\n",self->client->buttons);
+                for (j = 0;j< 2; j++)
+                {
+					self->velocity[j] += (self->velocity[j] * 2);
+                }
+				self->velocity[2] += 100;
+		}
+
+	}
+ //================================================
+
+	void fire_sword ( edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick)
+{    
+    trace_t tr; //detect whats in front of you up to range "vec3_t end"
+ 
+    vec3_t end;
+ 
+    // Figure out what we hit, if anything:
+ 
+    VectorMA (start, 100, aimdir, end);  //calculates the range vector                      
+ 
+    tr = gi.trace (self->s.origin, NULL, NULL, end, self, MASK_SHOT);
+                        // figuers out what in front of the player up till "end"
+    
+   // Figure out what to do about what we hit, if anything
+ 
+    if (!((tr.surface) && (tr.surface->flags & SURF_SKY)))    
+    {
+        if (tr.fraction < 1.0)        
+        {            
+            if (tr.ent->takedamage)            
+            {
+                //This tells us to damage the thing that in our path...hehe
+                T_Damage (tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal, damage, kick, 0, MOD_SWORD);
+                gi.sound (self, CHAN_AUTO, gi.soundindex("misc/fhit3.wav") , 1, ATTN_NORM, 0); 
+ 
+            }        
+            else        
+            {                
+                gi.WriteByte (svc_temp_entity);    
+                gi.WriteByte (TE_SPARKS);
+                gi.WritePosition (tr.endpos);    
+                gi.WriteDir (tr.plane.normal);
+                gi.multicast (tr.endpos, MULTICAST_PVS);
+ 
+                gi.sound (self, CHAN_AUTO, gi.soundindex("weapons/grenlb1b.wav") , 1, ATTN_NORM, 0);
+ 
+            }    
+        }
+    }
+    return;
+}  // 1-13-98 DanEB
+
+	void sword_attack (edict_t *ent, vec3_t g_offset, int damage)
+{
+  vec3_t  forward, right;
+  vec3_t  start;
+  vec3_t  offset;
+ 
+  /*if (is_quad)
+         damage *= 4;
+  AngleVectors (ent->client->v_angle, forward, right, NULL);
+  VectorSet(offset, 24, 8, ent->viewheight-8);
+  VectorAdd (offset, g_offset, offset);
+  P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
+ 
+  VectorScale (forward, -2, ent->client->kick_origin);
+  ent->client->kick_angles[0] = -1;
+ */
+  fire_sword (ent, start, forward, damage, 500);
 }

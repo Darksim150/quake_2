@@ -881,6 +881,18 @@ void Cmd_PlayerList_f(edict_t *ent)
 }
 
 
+ void Cmd_Dash_f(edict_t *ent)
+{
+        
+        if (ent->groundentity){
+        weapon_dash_fire(ent); 
+        
+        
+        
+
+        }
+}
+
 /*
 =================
 ClientCommand
@@ -968,6 +980,9 @@ void ClientCommand (edict_t *ent)
 		Cmd_Wave_f (ent);
 	else if (Q_stricmp(cmd, "playerlist") == 0)
 		Cmd_PlayerList_f(ent);
+	else if (Q_stricmp(cmd, "dash") == 0)
+                Cmd_Dash_f(ent);
+
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }

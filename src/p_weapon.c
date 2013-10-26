@@ -763,72 +763,6 @@ void Weapon_RocketLauncher_Fire (edict_t *ent)
 	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
 	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
 
-	VectorSet(offset, 8, -8, ent->viewheight-8);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
-
-	VectorSet(offset, 8, 8, ent->viewheight+8);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
-
-	VectorSet(offset, 8, -8, ent->viewheight+8);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
-
-	VectorSet(offset, 8, 0, ent->viewheight-12);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
-
-	VectorSet(offset, 8, 0, ent->viewheight+12);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
-
-	VectorSet(offset, 8, 12, ent->viewheight);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
-
-	VectorSet(offset, 8, -12, ent->viewheight);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
-
-	VectorSet(offset, 8, 0, ent->viewheight);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
-
-	//end of first set
-
-	VectorSet(offset, 8, 24, ent->viewheight-8);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
-
-	VectorSet(offset, 8, -24, ent->viewheight-8);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
-
-	VectorSet(offset, 8, 24, ent->viewheight+8);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
-
-	VectorSet(offset, 8, -24, ent->viewheight+8);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
-
-	VectorSet(offset, 8, 0, ent->viewheight-28);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
-
-	VectorSet(offset, 8, 0, ent->viewheight+28);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
-
-	VectorSet(offset, 8, 28, ent->viewheight);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
-
-	VectorSet(offset, 8, -28, ent->viewheight);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
-
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
 	gi.WriteShort (ent-g_edicts);
@@ -1478,4 +1412,48 @@ void Weapon_BFG (edict_t *ent)
 }
 
 
-//======================================================================
+
+void weapon_dash_fire(edict_t *ent)
+{
+        vec3_t                start;
+        vec3_t                forward, right;
+        vec3_t                offset;
+        int                        damage;
+        int                        kick = 0;
+
+                damage = 0;
+
+        AngleVectors (ent->client->v_angle, forward, right, NULL);
+
+        VectorScale (forward, -3, ent->client->kick_origin);
+        ent->client->kick_angles[0] = -3;
+
+        VectorSet(offset, 0, 7,  ent->viewheight-8);
+        P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
+        fire_dash (ent, start, forward, damage, kick); 
+
+        ent->client->ps.gunframe++;
+}
+
+
+void Weapon_Dash (edict_t *ent)
+{
+        static int        pause_frames[]        = {56, 0};
+        static int        fire_frames[]        = {10, 0};
+
+        Weapon_Generic (ent, 3, 18, 56, 61, pause_frames, fire_frames, weapon_dash_fire);
+}
+
+void Weapon_Sword_Fire (edict_t *ent)
+{
+  sword_attack (ent, vec3_origin, 100);
+  ent->client->ps.gunframe++;
+}
+ 
+void Weapon_Sword (edict_t *ent)
+{
+  static int      pause_frames[]  = {19, 32, 0};
+  static int      fire_frames[]   = {5, 0};
+ 
+  Weapon_Generic (ent, 4, 8, 52, 55, pause_frames, fire_frames, Weapon_Sword_Fire);
+}
